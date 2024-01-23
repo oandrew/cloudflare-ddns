@@ -94,6 +94,15 @@ func updateRecord(ctx context.Context, api *cloudflare.API, zone, domainName, re
 
 	record := dnsRecords[0]
 
+	if record.Content == content {
+		logrus.WithFields(logrus.Fields{
+			"name":    record.Name,
+			"type":    record.Type,
+			"content": record.Content,
+		}).Info("no change")
+		return nil
+	}
+
 	newRecord, err := api.UpdateDNSRecord(ctx, cloudflare.ZoneIdentifier(zoneID), cloudflare.UpdateDNSRecordParams{
 		ID:      record.ID,
 		Name:    record.Name,
