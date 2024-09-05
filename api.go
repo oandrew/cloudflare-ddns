@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"context"
-	"io"
 	"net"
 	"net/http"
 	"net/netip"
@@ -59,11 +59,12 @@ func getCurrentIP(ipEndpoint string, proto RequestProto) (netip.Addr, error) {
 	}
 	defer res.Body.Close()
 
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return netip.Addr{}, errors.Wrap(err, "could not read the output from the provider")
+	s := bufio.NewScanner(res.Body)
+	if !s.Scan() {
+		return netip.Addr{}, errors.Wrap(s.Err(), "no output from the provider")
 	}
-	ip, err := netip.ParseAddr(string(data))
+
+	ip, err := netip.ParseAddr(s.Text())
 	if err != nil {
 		return netip.Addr{}, errors.Wrap(err, "failed to parse ip")
 	}
